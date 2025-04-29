@@ -1,16 +1,25 @@
-FROM python:3.11-slim
+FROM python:3.12-alpine
+
+# Install needed packages (DNS lookups + pip building)
+RUN apk add --no-cache \
+    gcc \
+    musl-dev \
+    libffi-dev \
+    python3-dev \
+    py3-pip \
+    bind-tools
+
+# Set working directory
 WORKDIR /app
-COPY dns_stress.py .
-COPY domains.txt .
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        gcc \
-        libffi-dev \
-        libc-dev \
-        musl-dev \
-    && pip install aiodns \
-    && apt-get remove -y gcc libc-dev musl-dev \
-    && apt-get autoremove -y \
-    && apt-get clean
+RUN pip install aiodns
 
-CMD ["python", "dns_stress.py"]
+
+# Copy your script into the container
+COPY ./ ./
+
+# Install any Python dependencies if needed (example: dnspython if used)
+# RUN pip install dnspython
+
+# Command to run your script
+CMD ["python", "/app/dns_stress.py"]
